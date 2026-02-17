@@ -7,7 +7,7 @@ import { getPostUrlBySlug } from "../utils/url-utils";
 
 export let tags: string[];
 export let categories: string[];
-export let sortedPosts: Post[] = [];
+export let sortedPosts: any[] = [];
 
 const params = new URLSearchParams(window.location.search);
 tags = params.has("tag") ? params.getAll("tag") : [];
@@ -19,7 +19,7 @@ interface Post {
 	data: {
 		title: string;
 		tags: string[];
-		category?: string;
+		category?: string | null;
 		published: Date;
 	};
 }
@@ -42,7 +42,13 @@ function formatTag(tagList: string[]) {
 }
 
 onMount(async () => {
-	let filteredPosts: Post[] = sortedPosts;
+	let filteredPosts: Post[] = sortedPosts.map(post => ({
+		...post,
+		data: {
+			...post.data,
+			published: new Date(post.data.published)
+		}
+	}));
 
 	if (tags.length > 0) {
 		filteredPosts = filteredPosts.filter(
