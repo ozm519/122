@@ -7,7 +7,7 @@ import { getPostUrlBySlug } from "../utils/url-utils";
 
 export let tags: string[] = [];
 export let categories: string[] = [];
-export let sortedPosts: any[] = [];
+export let sortedPosts: Post[] = [];
 
 let uncategorized: string | null = null;
 
