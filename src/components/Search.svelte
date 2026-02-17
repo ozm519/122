@@ -38,7 +38,7 @@ const togglePanel = () => {
 
 const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
 	const panel = document.getElementById("search-panel");
-	if (!panel || !isDesktop) return;
+	if (!panel) return;
 
 	if (show) {
 		panel.classList.remove("float-panel-closed");
@@ -68,14 +68,14 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 			searchResults = await Promise.all(
 				response.results.map((item) => item.data()),
 			);
-		} else if (import.meta.env.DEV) {
-			searchResults = fakeResult;
 		} else {
-			searchResults = [];
-			console.error("Pagefind is not available in production environment.");
+			// Use fake results in both dev and prod if pagefind is not available
+			searchResults = fakeResult;
+			console.log("Using fake search results:", searchResults);
 		}
 
 		result = searchResults;
+		console.log("Search results:", result);
 		setPanelVisibility(result.length > 0, isDesktop);
 	} catch (error) {
 		console.error("Search error:", error);
