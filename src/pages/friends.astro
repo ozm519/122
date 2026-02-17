@@ -1,0 +1,55 @@
+---
+
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { friendLinkConfig } from "../config";
+
+---
+
+<MainGridLayout title={i18n(I18nKey.friends)} description="友链页面">
+    <div class="card-base px-8 py-6">
+        <h1 class="text-2xl font-bold mb-6">{i18n(I18nKey.friends)}</h1>
+        
+        <div class="mb-8">
+            <p class="mb-4">如果您也想加入友链名单，请<a href="https://github.com/ozm519/fuwari/issues/new" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">点击这里提交</a></p>
+            <p class="text-sm text-gray-500">
+                我们会定期通过 Github Action 运行一个工作流，使用 Github 的 IP 对这里的所有站点做访问性测试，
+                如果不通过测试（如网站无法访问），该条目将被自动删除。
+                当您再次做好准备时，欢迎再次提交 PR 申请。
+            </p>
+        </div>
+        
+        {friendLinkConfig.categories.map((category) => (
+            <div class="mb-10">
+                <h2 class="text-xl font-semibold mb-4">{category.name}</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {category.links.map((link) => (
+                        <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="group flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all"
+                        >
+                            <div class="w-16 h-16 mb-4 rounded-full overflow-hidden flex items-center justify-center">
+                                {link.avatar ? (
+                                    <img
+                                        src={link.avatar}
+                                        alt={link.name}
+                                        class="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                        <span class="text-gray-500">{link.name.charAt(0)}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <h3 class="font-bold mb-2 group-hover:text-blue-600">{link.name}</h3>
+                            <p class="text-sm text-gray-500 text-center">{link.description}</p>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        ))}
+    </div>
+</MainGridLayout>
