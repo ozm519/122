@@ -92,18 +92,18 @@ export const friendLinkConfig: FriendLinkConfig = {
 			links: [
 				{
 					name: "粽子不解绳",
-					url: "https://zzbjs.de5.net/",
+					url: "https://ozm519.de5.net/",
 					description: "粽子不解绳的个人网站",
 					avatar: "https://edgeoneimg.cdn.sn/i/699312b7a530d_1771246263.webp",
 				},
 			],
 		},
 		{
-			name: "技术博客",
+			name: "Github",
 			links: [
 				{
 					name: "GitHub",
-					url: "https://github.com/",
+					url: "https://github.com/ozm519/",
 					description: "全球最大的代码托管平台",
 					avatar: "https://github.githubassets.com/favicon.ico",
 				},
