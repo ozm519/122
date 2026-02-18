@@ -1,0 +1,198 @@
+name: Friend Links Automation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: '0 0 * * *' # 每天运行一次访问性测试
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate-friend-link:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate friend link config
+        run: |
+          # 检查 config.ts 文件是否被修改
+          if git diff --name-only HEAD~1 HEAD | grep -q "src/config.ts"; then
+            # 验证 config.ts 文件的语法
+            node -e "require('./src/config.ts')"
+            echo "✅ Friend link config is valid"
+          else
+            echo "⚠️ No changes to friend link config"
+          fi
+
+  accessibility-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run accessibility tests
+        run: |
+          # 读取友链配置
+          FRIEND_LINKS=$(node -e "console.log(JSON.stringify(require('./src/config.ts').friendLinkConfig.categories))")
+          
+          # 遍历所有友链并测试访问性
+          echo "Testing friend links accessibility..."
+          
+          # 解析 JSON 并测试每个链接
+          node -e "
+            const fs = require('fs');
+            const https = require('https');
+            const http = require('http');
+            
+            // 读取友链配置
+            const config = require('./src/config.ts');
+            const categories = config.friendLinkConfig.categories;
+            
+            // 测试链接函数
+            function testLink(url) {
+              return new Promise((resolve) => {
+                console.log(`Testing: ${url}`);
+                
+                const protocol = url.startsWith('https') ? https : http;
+                const timeout = 10000; // 10秒超时
+                
+                const req = protocol.get(url, {
+                  timeout: timeout,
+                  headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                  }
+                }, (res) => {
+                  console.log(`${url} - Status: ${res.statusCode}`);
+                  resolve({ url, status: res.statusCode, success: res.statusCode >= 200 && res.statusCode < 400 });
+                });
+                
+                req.on('error', (err) => {
+                  console.error(`${url} - Error: ${err.message}`);
+                  resolve({ url, status: 0, success: false, error: err.message });
+                });
+                
+                req.on('timeout', () => {
+                  console.error(`${url} - Timeout`);
+                  req.destroy();
+                  resolve({ url, status: 0, success: false, error: 'Timeout' });
+                });
+              });
+            }
+            
+            // 收集所有链接
+            const links = [];
+            categories.forEach(category => {
+              category.links.forEach(link => {
+                links.push(link);
+              });
+            });
+            
+            // 测试所有链接
+            Promise.all(links.map(link => testLink(link.url)))
+              .then(results => {
+                const failed = results.filter(r => !r.success);
+                
+                console.log(`\n=== Test Results ===`);
+                console.log(`Total links: ${results.length}`);
+                console.log(`Successful: ${results.length - failed.length}`);
+                console.log(`Failed: ${failed.length}`);
+                
+                if (failed.length > 0) {
+                  console.log(`\n=== Failed Links ===`);
+                  failed.forEach(f => {
+                    console.log(`${f.url} - ${f.error || 'Unknown error'}`);
+                  });
+                  
+                  // 生成更新后的友链配置
+                  const updatedCategories = categories.map(category => ({
+                    ...category,
+                    links: category.links.filter(link => {
+                      const result = results.find(r => r.url === link.url);
+                      return result && result.success;
+                    })
+                  }));
+                  
+                  // 移除空分类
+                  const finalCategories = updatedCategories.filter(category => category.links.length > 0);
+                  
+                  // 更新配置文件
+                  const configContent = fs.readFileSync('./src/config.ts', 'utf8');
+                  const updatedConfigContent = configContent.replace(
+                    /export const friendLinkConfig: FriendLinkConfig = \{[\s\S]*?\};/,
+                    `export const friendLinkConfig: FriendLinkConfig = {\n\tenable: true,\n\tcategories: ${JSON.stringify(finalCategories, null, '\t\t')}\n};`
+                  );
+                  
+                  fs.writeFileSync('./src/config.ts', updatedConfigContent);
+                  console.log('\n✅ Updated friend link config, removed failed links');
+                } else {
+                  console.log('\n✅ All links are accessible');
+                }
+              })
+              .catch(err => {
+                console.error('Error running tests:', err);
+              });
+          "
+
+      - name: Commit changes
+        if: success()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if git diff --name-only | grep -q "src/config.ts"; then
+            git add src/config.ts
+            git commit -m "chore: update friend links (remove failed links)"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+
+  auto-merge:
+    runs-on: ubuntu-latest
+    needs: validate-friend-link
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auto merge friend link PR
+        run: |
+          # 检查 PR 是否只修改了友链配置
+          MODIFIED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          ONLY_CONFIG_MODIFIED=$(echo "$MODIFIED_FILES" | grep -E "^(src/config.ts)$" | wc -l)
+          TOTAL_MODIFIED=$(echo "$MODIFIED_FILES" | wc -l)
+          
+          if [ "$ONLY_CONFIG_MODIFIED" -eq "$TOTAL_MODIFIED" ]; then
+            echo "✅ PR only modifies friend link config"
+            # 这里可以添加更多验证逻辑
+            echo "PR is eligible for auto-merge"
+          else
+            echo "⚠️ PR modifies files other than friend link config"
+          fi

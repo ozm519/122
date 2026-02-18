@@ -15,66 +15,41 @@ import { friendLinkConfig } from "../config";
         </h1>
         
         <div class="mb-8">
-            <p class="mb-4">如果您也想加入友链名单，请<a href="https://github.com/ozm519/fuwari/issues/new" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline font-medium">点击这里提交</a></p>
+            <p class="mb-4">如果您也想加入友链名单，请<a href="https://github.com/ozm519/fuwari/issues/new?template=04-friend-link.yml" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">点击这里提交</a></p>
             <p class="text-sm text-gray-500">
                 我们会定期通过 Github Action 运行一个工作流，使用 Github 的 IP 对这里的所有站点做访问性测试，
                 如果不通过测试（如网站无法访问），该条目将被自动删除。
-                当您再次做好准备时，欢迎再次提交 PR 申请。
+                当您再次做好准备时，欢迎再次提交申请。
             </p>
         </div>
-
-        <!-- 添加友链示例 -->
-        <div class="mb-10 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h2 class="text-xl font-semibold mb-4">添加友链示例</h2>
-            <p class="mb-4">要添加友链，请在 <code class="bg-gray-100 px-2 py-1 rounded">src/config.ts</code> 文件中的 <code class="bg-gray-100 px-2 py-1 rounded">friendLinkConfig</code> 配置中添加您的网站信息。</p>
-            <div class="bg-gray-100 p-4 rounded-lg overflow-x-auto">
-                <pre class="text-sm"><code>{`// 在 friendLinkConfig.categories 中添加或修改分类
-{
-    name: "个人网站",
-    links: [
-        {
-            name: "您的网站名称",
-            url: "https://您的网站地址",
-            description: "您的网站描述",
-            avatar: "https://您的头像地址"
-        }
-    ]
-}`}</code></pre>
-            </div>
-        </div>
         
-        {friendLinkConfig.categories.map((category) => (
-            <div class="mb-10">
-                <h2 class="text-xl font-semibold mb-4">{category.name}</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {category.links.map((link) => (
-                        <a
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="group flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-sm transition-all duration-300"
-                        >
-                            <div class="w-12 h-12 mr-4 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-200 group-hover:border-blue-400 transition-all duration-300">
-                                {link.avatar ? (
-                                    <img
-                                        src={link.avatar}
-                                        alt={link.name}
-                                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                    />
-                                ) : (
-                                    <div class="w-full h-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">
-                                        {link.name.charAt(0)}
-                                    </div>
-                                )}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {friendLinkConfig.categories.flatMap(category => category.links).map((link) => (
+                <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-400 transition-all duration-300"
+                >
+                    <div class="w-10 h-10 mr-4 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0">
+                        {link.avatar ? (
+                            <img
+                                src={link.avatar}
+                                alt={link.name}
+                                class="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div class="w-full h-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">
+                                {link.name.charAt(0)}
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="font-bold mb-1 text-base group-hover:text-blue-600 transition-colors duration-300">{link.name}</h3>
-                                <p class="text-sm text-gray-500 line-clamp-1">{link.description}</p>
-                            </div>
-                        </a>
-                    ))}
-                </div>
-            </div>
-        ))}
+                        )}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold mb-1 text-base">{link.name}</h3>
+                        <p class="text-sm text-gray-500">{link.description}</p>
+                    </div>
+                </a>
+            ))}
+        </div>
     </div>
 </MainGridLayout>
