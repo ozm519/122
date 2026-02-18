@@ -14,22 +14,22 @@ import { friendLinkConfig } from "../config";
             {i18n(I18nKey.friends)}
         </h1>
         
-        <div class="mb-8">
-            <h2 class="text-lg font-semibold mb-3">如何加入友链</h2>
-            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <ol class="list-decimal pl-5 space-y-3 mb-4">
+        <div class="mb-4">
+            <h2 class="text-base font-semibold mb-2">如何加入友链</h2>
+            <div class="bg-gray-50 p-2 rounded-lg border border-gray-200">
+                <ol class="list-decimal pl-4 space-y-2 mb-2">
                     <li>
-                        <strong>第一步：Fork 仓库</strong>
-                        <p class="mt-1 text-sm text-gray-600">
+                        <strong class="text-sm">第一步：Fork 仓库</strong>
+                        <p class="mt-0.5 text-xs text-gray-600">
                             <a href="https://github.com/ozm519/fuwari/fork" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">点击这里</a> 进入 GitHub 仓库页面，然后点击右上角的 "Fork" 按钮，将仓库复制到您自己的 GitHub 账号下。
                         </p>
                     </li>
                     <li>
-                        <strong>第二步：修改友链配置</strong>
-                        <p class="mt-1 text-sm text-gray-600">
-                            在您 Fork 的仓库中，找到并打开 <code class="bg-gray-100 px-1 py-0.5 rounded">src/config.ts</code> 文件，然后在 <code class="bg-gray-100 px-1 py-0.5 rounded">friendLinkConfig</code> 配置中添加您的网站信息。
+                        <strong class="text-sm">第二步：修改友链配置</strong>
+                        <p class="mt-0.5 text-xs text-gray-600">
+                            在您 Fork 的仓库中，找到并打开 <code class="bg-gray-100 px-0.5 py-0.25 rounded text-xs">src/config.ts</code> 文件，然后在 <code class="bg-gray-100 px-0.5 py-0.25 rounded text-xs">friendLinkConfig</code> 配置中添加您的网站信息。
                         </p>
-                        <div class="mt-1 p-2 bg-gray-100 rounded-lg overflow-x-auto">
+                        <div class="mt-0.5 p-1.5 bg-gray-100 rounded-lg overflow-x-auto">
                             <pre class="text-xs leading-tight"><code>{`// 在 friendLinkConfig.categories 中选择合适的分类，或创建新分类
 {
     name: "个人网站", // 分类名称
@@ -45,27 +45,26 @@ import { friendLinkConfig } from "../config";
                         </div>
                     </li>
                     <li>
-                        <strong>第三步：提交更改</strong>
-                        <p class="mt-1 text-sm text-gray-600">
+                        <strong class="text-sm">第三步：提交更改</strong>
+                        <p class="mt-0.5 text-xs text-gray-600">
                             修改完成后，在页面底部填写提交信息（例如："添加友链：您的网站名称"），然后点击 "Commit changes" 按钮提交更改。
                         </p>
                     </li>
                     <li>
-                        <strong>第四步：创建 PR 申请</strong>
-                        <p class="mt-1 text-sm text-gray-600">
+                        <strong class="text-sm">第四步：创建 PR 申请</strong>
+                        <p class="mt-0.5 text-xs text-gray-600">
                             提交更改后，GitHub 会自动跳转到一个页面，提示您创建 Pull Request。点击 "Compare & pull request" 按钮，然后在新页面中填写 PR 标题和描述，最后点击 "Create pull request" 按钮提交申请。
                         </p>
                     </li>
                 </ol>
-                <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                    <h3 class="font-semibold text-blue-800 mb-1 text-sm">注意事项</h3>
-                    <ul class="list-disc pl-5 text-xs text-blue-700 space-y-1">
-                        <li>请确保您的网站可以正常访问，我们会定期测试站点可访问性</li>
-                        <li>请确保您的网站内容健康、积极，且与技术相关</li>
-                        <li>请提供清晰、准确的网站描述，不超过 50 个字符</li>
-                        <li>请提供高质量的网站头像，建议尺寸为 100x100 像素</li>
+                <div class="bg-blue-50 p-2 rounded-lg border border-blue-200">
+                    <h3 class="font-semibold text-blue-800 mb-0.5 text-xs">注意事项</h3>
+                    <ul class="list-disc pl-4 text-xs text-blue-700 space-y-0.5">
+                        <li>请确保您的网站可以正常访问</li>
+                        <li>请确保您的网站内容健康、积极</li>
+                        <li>请提供清晰、准确的网站描述</li>
+                        <li>请提供高质量的网站头像</li>
                         <li>如果您的网站无法访问，我们会自动移除您的友链</li>
-                        <li>当您的网站再次可访问时，欢迎重新提交申请</li>
                     </ul>
                 </div>
             </div>
