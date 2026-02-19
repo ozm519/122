@@ -4,7 +4,8 @@ description: 魔改版彩虹外链网盘系统部署配置教程
 published: 2026-02-18
 categories: [技术指南]
 tags: [网盘系统,部署配置,PHP,MySQL,InfinityFree]
-author: 技术文档
+category: 网盘
+draft: false
 ---
 
 # 魔改版彩虹外链网盘系统详细部署配置指南
