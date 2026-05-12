@@ -2,8 +2,10 @@
 
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
-import MainGridLayout from "../layouts/MainGridLayout.astro";
-import { friendLinkConfig } from "../config";
+import MainGridLayout from "../layouts/MainGridLayout";
+import friendsData from "../../data/friends.json";
+
+const friendCategories = friendsData.categories || [];
 
 ---
 
@@ -19,84 +21,90 @@ import { friendLinkConfig } from "../config";
             <div class="bg-gray-50 p-2 rounded-lg border border-gray-200">
                 <ol class="list-decimal pl-4 space-y-2 mb-2">
                     <li>
-                        <strong class="text-sm">第一步：Fork 仓库</strong>
+                        <strong class="text-sm">第一步：添加回链</strong>
                         <p class="mt-0.5 text-xs text-gray-600">
-                            <a href="https://github.com/ozm519/fuwari/fork" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">点击这里</a> 进入 GitHub 仓库页面，然后点击右上角的 "Fork" 按钮，将仓库复制到您自己的 GitHub 账号下。
+                            在您的网站上添加指向本站的友链：<code class="bg-gray-100 px-0.5 py-0.25 rounded text-xs">&lt;a href="https://b.667891.xyz"&gt;粽子不解绳博客&lt;/a&gt;</code>
                         </p>
                     </li>
                     <li>
-                        <strong class="text-sm">第二步：修改友链配置</strong>
+                        <strong class="text-sm">第二步：Fork 仓库</strong>
                         <p class="mt-0.5 text-xs text-gray-600">
-                            在您 Fork 的仓库中，找到并打开 <code class="bg-gray-100 px-0.5 py-0.25 rounded text-xs">src/config.ts</code> 文件，然后在 <code class="bg-gray-100 px-0.5 py-0.25 rounded text-xs">friendLinkConfig</code> 配置中添加您的网站信息。
+                            <a href="https://github.com/ozm519/fuwari/fork" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">点击这里</a> Fork 本仓库到您的 GitHub 账号。
+                        </p>
+                    </li>
+                    <li>
+                        <strong class="text-sm">第三步：修改友链数据</strong>
+                        <p class="mt-0.5 text-xs text-gray-600">
+                            编辑 <code class="bg-gray-100 px-0.5 py-0.25 rounded text-xs">data/friends.json</code>，在对应分类的 links 数组中添加您的信息。
                         </p>
                         <div class="mt-0.5 p-1.5 bg-gray-100 rounded-lg overflow-x-auto">
-                            <pre class="text-xs leading-tight"><code>{`// 在 friendLinkConfig.categories 中选择合适的分类，或创建新分类
-{
-    name: "个人网站", // 分类名称
-    links: [
-        {
-            name: "您的网站名称", // 网站名称
-            url: "https://您的网站地址", // 网站完整 URL
-            description: "您的网站描述", // 网站简短描述
-            avatar: "https://您的头像地址" // 网站头像 URL（可选）
-        }
-    ]
+                            <pre class="text-xs leading-tight"><code>{`{
+  "name": "您的网站名称",
+  "url": "https://您的网站地址",
+  "description": "网站简短描述",
+  "avatar": "https://头像地址（可选）",
+  "addedAt": "${new Date().toISOString().split('T')[0]}"
 }`}</code></pre>
                         </div>
                     </li>
                     <li>
-                        <strong class="text-sm">第三步：提交更改</strong>
+                        <strong class="text-sm">第四步：提交 PR</strong>
                         <p class="mt-0.5 text-xs text-gray-600">
-                            修改完成后，在页面底部填写提交信息（例如："添加友链：您的网站名称"），然后点击 "Commit changes" 按钮提交更改。
-                        </p>
-                    </li>
-                    <li>
-                        <strong class="text-sm">第四步：创建 PR 申请</strong>
-                        <p class="mt-0.5 text-xs text-gray-600">
-                            提交更改后，GitHub 会自动跳转到一个页面，提示您创建 Pull Request。点击 "Compare & pull request" 按钮，然后在新页面中填写 PR 标题和描述，最后点击 "Create pull request" 按钮提交申请。
+                            提交更改后创建 Pull Request。自动化系统会验证格式和回链，通过后等待管理员合并。
                         </p>
                     </li>
                 </ol>
                 <div class="bg-blue-50 p-2 rounded-lg border border-blue-200">
-                    <h3 class="font-semibold text-blue-800 mb-0.5 text-xs">注意事项</h3>
+                    <h3 class="font-semibold text-blue-800 mb-0.5 text-xs">⚡ 自动化流程</h3>
                     <ul class="list-disc pl-4 text-xs text-blue-700 space-y-0.5">
-                        <li>请确保您的网站可以正常访问</li>
-                        <li>请确保您的网站内容健康、积极</li>
-                        <li>请提供清晰、准确的网站描述</li>
-                        <li>请提供高质量的网站头像</li>
-                        <li>如果您的网站无法访问，我们会自动移除您的友链</li>
+                        <li>系统会自动验证 JSON 格式</li>
+                        <li>系统会自动访问您的网站检查回链是否存在</li>
+                        <li>验证通过后 PR 会打上「待合并」标签</li>
+                        <li>也可通过 Issue 模板快速申请</li>
                     </ul>
                 </div>
             </div>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {friendLinkConfig.categories.flatMap(category => category.links).map((link) => (
-                <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-400 transition-all duration-300"
-                >
-                    <div class="w-10 h-10 mr-4 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0">
-                        {link.avatar ? (
-                            <img
-                                src={link.avatar}
-                                alt={link.name}
-                                class="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div class="w-full h-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-500">
-                                {link.name.charAt(0)}
-                            </div>
+
+        {friendCategories.length > 0 && (
+            <div class="space-y-6">
+                {friendCategories.map((category) => (
+                    <div>
+                        {friendCategories.length > 1 && (
+                            <h3 class="text-lg font-semibold mb-3 text-gray-700">{category.name}</h3>
                         )}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {category.links.map((link) => (
+                                <a
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all duration-300"
+                                >
+                                    <div class="w-10 h-10 mr-4 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 bg-gray-100">
+                                        {link.avatar ? (
+                                            <img
+                                                src={link.avatar}
+                                                alt={link.name}
+                                                class="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div class="w-full h-full flex items-center justify-center text-sm font-bold text-gray-500">
+                                                {link.name.charAt(0)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="font-bold mb-1 text-base">{link.name}</h3>
+                                        <p class="text-sm text-gray-500 line-clamp-1">{link.description}</p>
+                                    </div>
+                                </a>
+                            ))}
+                        </div>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <h3 class="font-bold mb-1 text-base">{link.name}</h3>
-                        <p class="text-sm text-gray-500">{link.description}</p>
-                    </div>
-                </a>
-            ))}
-        </div>
+                ))}
+            </div>
+        )}
     </div>
 </MainGridLayout>
