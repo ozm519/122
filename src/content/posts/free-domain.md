@@ -6,7 +6,6 @@ categories: [技术教程]
 tags: [免费域名,域名注册,bond域名,cyou域名,CloudFlare,Nicnames]
 category: 域名
 draft: false
-image: ./zhuce.webp
 ---
 
 # 白嫖两个年抛 .bond 和 .cyou 域名教程
@@ -24,9 +23,6 @@ image: ./zhuce.webp
 ### 1. 注册 Nicnames 账号
 
 1. 进入 [Nicnames 官网](https://nicnames.com/en/signup) 注册账号
-
-![注册页面](./zhuce.webp)
-
    - 使用邮箱注册即可（QQ 邮箱也可以）
 
 ### 2. 注册/加入 Discord
@@ -35,12 +31,7 @@ image: ./zhuce.webp
    
    [https://discord.com/invite/doma](https://discord.com/invite/doma)
 
-   ![接受Doma邀请](./doma.webp)
-
 2. 没有账号的，先在 [Discord 注册页面](https://discord.com/register) 创建账户
-
-   ![创建Discord账号](./discord.webp)
-
    - 电子邮件即可注册
    - **手机号码验证**：如果需要验证手机号但不想用真实号码，可以使用免费接码平台：
      - [Receive-SMS-Online 免费领 1.5€ 额度](https://receive-sms-online.info/promo.php?code=BONUS15)
@@ -51,41 +42,22 @@ image: ./zhuce.webp
 3. 刚注册完等 **5 分钟**再进入 Discord 频道
 4. 进入后点击一下 **验证**
 
-   ![Discord验证页面](./jinr.webp)
-
-   ![验证频道详情](./yanzs.webp)
-
 ### 3. 领取优惠券
 
 1. 进入频道后，找到 **nicnames-promos** 频道
 2. 点击 **【搜索 APP 和命令】** 按钮
 3. 在搜索框中输入 `/promos`（或直接输入 `/` 就能看到 promos 命令）
-
-   ![输入Promos命令](./promos.webp)
-
 4. 点击命令并按回车，nicnames bot 会和你对话
-
-5. 如果没有绑定 nicnames 的邮箱，会弹出绑定窗口
-
-   ![绑定邮箱](./Bot.webp)
-
+5. 如果没有绑定 nicnames 的邮箱，需要先绑定邮箱
 6. 绑定完成后点击 **【Enter OTP Code】** 验证
-
-   ![OTP验证](./OTP.webp)
-
 7. 邮箱会收到验证码，如实填写即可
 8. 验证完成后，如果没有其他信息，重新发送 `/promos` 命令
 9. 在 **Select a promo to activate** 中点击 **【choose a promo to activate】**
-
-   ![选择优惠券类型](./choose.webp)
-
 10. 选择需要的域名抵扣券：
     - **bond 域名** × 2 张
     - **cyou 域名** × 2 张
 
 11. 完成后机器人会回应，同时邮箱会收到抵扣券优惠码
-
-   ![优惠券激活成功](./yhm.webp)
 
 ---
 
@@ -95,9 +67,6 @@ image: ./zhuce.webp
 
 1. 回到 [Nicnames 网站域名页面](https://nicnames.com/en/domains)
 2. 搜索自己喜欢的域名，例如：`yourname.bond`
-
-   ![搜索域名](./ss.webp)
-
 3. 加入购物车
 
 ### 2. 填写联系人信息
@@ -114,17 +83,12 @@ image: ./zhuce.webp
 1. 点击 **【Enter Coupon Code】** 按钮
 2. 填入邮箱收到的抵扣券编码
 3. 点击 **【应用】**，价格会变成 **0**
-
-   ![应用优惠券](./buy.webp)
-
 4. 点击 **【continue】** 继续下一步
 5. 完成注册！
 
 ### 4. 查看已注册域名
 
-在 **Domains → Classic → DNS** 下就能看到注册的域名了。
-
-   ![查看已注册域名](./haol.webp)
+在 **domains → classic** 下就能看到注册的域名了。
 
 > 提示：两张 bond/cyou 抵扣券只能注册新域名，不能续费。
 
@@ -159,16 +123,10 @@ image: ./zhuce.webp
 
 ### 5. 修改域名 DNS 服务器
 
-1. 回到 Nicnames 的 **Domains → Classic → DNS**
-2. 找到对应的域名，点击 **设置** 图标
-
-   ![选择Name-Servers选项](./ns.webp)
-
+1. 回到 Nicnames 的 **domains → classic**
+2. 找到对应的域名，点击 **【设置】** 按钮
 3. 在 **Name-Servers** 位置选择 **【Custom Name-Servers】**
 4. 修改域名的 DNS 为 CloudFlare 分配的名称服务器地址（两个都要填）
-
-   ![填写NS服务器地址](./gai.webp)
-
 5. 保存设置
 
 ### 6. 等待生效
@@ -207,3 +165,5 @@ image: ./zhuce.webp
 - [CloudFlare 控制台](https://dash.cloudflare.com)
 
 ---
+
+
