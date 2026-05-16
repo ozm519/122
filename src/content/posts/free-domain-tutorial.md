@@ -6,7 +6,7 @@ categories: [技术教程]
 tags: [免费域名,域名注册,bond域名,cyou域名,CloudFlare,Nicnames]
 category: 域名
 draft: false
-image: ./zhuce.webp
+image: ./dom.webp
 ---
 
 # 白嫖两个年抛 .bond 和 .cyou 域名教程
