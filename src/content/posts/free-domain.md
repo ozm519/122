@@ -51,7 +51,7 @@ image: ./dom.webp
 3. 刚注册完等 **5 分钟**再进入 Discord 频道
 4. 进入后点击一下 **验证**
 
-   ![Discord验证页面](./jinr.webp)
+   ![Discord验证页面](./yanzs.webp)
 
 
 ### 3. 领取优惠券
@@ -123,7 +123,7 @@ image: ./dom.webp
 
 在 **Domains → Classic → DNS** 下就能看到注册的域名了。
 
-   ![查看已注册域名](./haol.webp)
+   ![查看已注册域名](./names.webp)
 
 > 提示：两张 bond/cyou 抵扣券只能注册新域名，不能续费。
 
@@ -161,12 +161,15 @@ image: ./dom.webp
 1. 回到 Nicnames 的 **Domains → Classic → DNS**
 2. 找到对应的域名，点击 **设置** 图标
 
-   ![选择Name-Servers选项](./ns.webp)
+   ![选择Name-Servers选项](./gai.webp)
 
 3. 在 **Name-Servers** 位置选择 **【Custom Name-Servers】**
+
+   (./ns.webp)
+
 4. 修改域名的 DNS 为 CloudFlare 分配的名称服务器地址（两个都要填）
 
-   ![填写NS服务器地址](./gai.webp)
+   ![填写NS服务器地址](./haol.webp)
 
 5. 保存设置
 
