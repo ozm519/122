@@ -1,5 +1,5 @@
 ---
-title: 免费注册年抛 .bond 和 .cyou 域名教程
+title: 白嫖两个年抛 .bond 和 .cyou 域名教程
 description: 详细教程：如何通过 Nicnames 和 Doma 免费注册顶级域名
 published: 2026-05-13
 categories: [技术教程]
@@ -8,7 +8,7 @@ category: 域名
 draft: false
 ---
 
-# 免费注册年抛 .bond 和 .cyou 域名教程
+# 白嫖两个年抛 .bond 和 .cyou 域名教程
 
 ## 前言
 
