@@ -53,7 +53,6 @@ image: ./dom.webp
 
    ![Discord验证页面](./jinr.webp)
 
-   ![验证频道详情](./yanzs.webp)
 
 ### 3. 领取优惠券
 
