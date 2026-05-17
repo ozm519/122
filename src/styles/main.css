@@ -150,3 +150,23 @@
     }
   }
 }
+
+@media (max-width: 768px) {
+  .custom-md img,
+  #post-cover img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  .custom-md pre {
+    font-size: 0.875rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .custom-md table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
