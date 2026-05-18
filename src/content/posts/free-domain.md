@@ -161,12 +161,12 @@ image: ./dom.webp
 1. 回到 Nicnames 的 **Domains → Classic → DNS**
 2. 找到对应的域名，点击 **设置** 图标
 
-   (./gai.webp)
+   ![管理DNS](./gai.webp)
 
 3. 在 **Name-Servers** 位置选择 **【Custom Name-Servers】**
 
-   (./ns.webp)
-   
+   ![找NS服务器的地方](./ns.webp)
+
 4. 修改域名的 DNS 为 CloudFlare 分配的名称服务器地址（两个都要填）
 
    ![填写NS服务器地址](./haol.webp)
