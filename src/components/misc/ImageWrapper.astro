@@ -21,7 +21,7 @@ src,
 alt,
 position = "center",
 basePath = "/",
-fit = "contain",
+fit = "cover",
 lazy = true,
 } = Astro.props;
 const className = Astro.props.class;
@@ -54,7 +54,7 @@ console.error(
 img = await file();
 }
 
-const imageClass = `w-full h-auto object-${fit}`;
+const imageClass = `w-full h-full object-${fit}`;
 const imageStyle = `object-position: ${position}`;
 ---
 <div id={id} class:list={[className, 'overflow-hidden relative']}>
