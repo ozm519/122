@@ -21,7 +21,7 @@ src,
 alt,
 position = "center",
 basePath = "/",
-fit = "cover",
+fit = "contain",
 lazy = true,
 } = Astro.props;
 const className = Astro.props.class;
@@ -54,7 +54,10 @@ console.error(
 img = await file();
 }
 
-const imageClass = `w-full h-full object-${fit}`;
+// 检测外部是否指定了object-fit，如果没有则使用默认值
+const hasCustomFit = className && (className.includes('object-cover') || className.includes('object-contain') || className.includes('object-fill') || className.includes('object-none'));
+const finalFit = hasCustomFit ? '' : `object-${fit}`;
+const imageClass = `w-full ${finalFit}`.trim();
 const imageStyle = `object-position: ${position}`;
 ---
 <div id={id} class:list={[className, 'overflow-hidden relative']}>
