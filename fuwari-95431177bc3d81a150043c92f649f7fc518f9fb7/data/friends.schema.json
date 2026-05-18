@@ -1,0 +1,72 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Friend Links Schema",
+	"description": "友链数据结构的 JSON Schema 定义",
+	"type": "object",
+	"required": ["version", "siteUrl", "categories"],
+	"properties": {
+		"version": {
+			"type": "string",
+			"description": "数据格式版本"
+		},
+		"siteUrl": {
+			"type": "string",
+			"format": "uri",
+			"description": "本站地址，用于回链验证"
+		},
+		"categories": {
+			"type": "array",
+			"description": "友链分类列表",
+			"items": {
+				"type": "object",
+				"required": ["name", "links"],
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "分类名称"
+					},
+					"links": {
+						"type": "array",
+						"description": "该分类下的友链列表",
+						"items": {
+							"type": "object",
+							"required": ["name", "url", "description"],
+							"properties": {
+								"name": {
+									"type": "string",
+									"minLength": 1,
+									"maxLength": 50,
+									"description": "网站名称"
+								},
+								"url": {
+									"type": "string",
+									"format": "uri",
+									"pattern": "^https?://.+",
+									"description": "网站 URL"
+								},
+								"description": {
+									"type": "string",
+									"minLength": 1,
+									"maxLength": 100,
+									"description": "网站描述"
+								},
+								"avatar": {
+									"type": "string",
+									"format": "uri",
+									"description": "头像 URL（可选）"
+								},
+								"addedAt": {
+									"type": "string",
+									"format": "date",
+									"description": "添加日期"
+								}
+							},
+							"additionalProperties": false
+						}
+					}
+				}
+			}
+		}
+	},
+	"additionalProperties": false
+}
