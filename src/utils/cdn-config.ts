@@ -1,10 +1,7 @@
 /**
- * CDN Configuration - CDN主备切换配置文件 (完整版)
+ * CDN Configuration - CDN主备切换配置文件 (版本同步版)
  * 
- * 配置说明：
- * - primary: jsDelivr (首选CDN，全球加速)
- * - backup: BootCDN (备用CDN，国内加速)
- * - 支持自动故障切换和负载均衡
+ * ⚠️ 重要：此文件的版本号必须与 package.json 中的实际安装版本完全一致！
  */
 
 export interface CDNProvider {
@@ -19,7 +16,7 @@ export interface CDNResource {
   path: string;
   type: 'js' | 'css';
   priority: 'critical' | 'high' | 'low';
-  globalVar?: string; // 全局变量名（用于检测是否加载成功）
+  globalVar?: string;
 }
 
 interface CDNConfig {
@@ -49,16 +46,17 @@ const cdnConfig: CDNConfig = {
   
   resources: [
     // ==================== KaTeX 数学公式渲染库 ====================
+    // 实际安装版本: katex@0.16.27
     {
       name: 'katex',
-      version: '0.16.9',
+      version: '0.16.27',  // ✅ 与 package.json 一致
       path: 'katex/dist/katex.min.css',
       type: 'css',
       priority: 'critical',
     },
     {
       name: 'katex',
-      version: '0.16.9',
+      version: '0.16.27',
       path: 'katex/dist/katex.min.js',
       type: 'js',
       priority: 'critical',
@@ -66,7 +64,7 @@ const cdnConfig: CDNConfig = {
     },
     {
       name: 'katex',
-      version: '0.16.9',
+      version: '0.16.27',
       path: 'katex/dist/contrib/auto-render.min.js',
       type: 'js',
       priority: 'critical',
@@ -74,54 +72,45 @@ const cdnConfig: CDNConfig = {
     },
     
     // ==================== OverlayScrollbars 自定义滚动条 ====================
+    // 实际安装版本: overlayscrollbars@2.12.0
     {
       name: 'overlayscrollbars',
-      version: '2.4.5',
+      version: '2.12.0',  // ✅ 与 package.json 一致
       path: 'overlayscrollbars/overlayscrollbars.css',
       type: 'css',
       priority: 'high',
     },
     {
       name: 'overlayscrollbars',
-      version: '2.4.5',
+      version: '2.12.0',
       path: 'overlayscrollbars/overlayscrollbars.esm.js',
       type: 'js',
       priority: 'high',
     },
     
     // ==================== PhotoSwipe 图片灯箱 ====================
+    // 实际安装版本: photoswipe@5.4.4
     {
       name: 'photoswipe',
-      version: '5.3.8',
+      version: '5.4.4',  // ✅ 与 package.json 一致
       path: 'photoswipe/style.css',
       type: 'css',
       priority: 'low',
     },
     {
       name: 'photoswipe',
-      version: '5.3.8',
+      version: '5.4.4',
       path: 'photoswipe/photoswipe.esm.js',
       type: 'js',
       priority: 'low',
     },
     {
       name: 'photoswipe',
-      version: '5.3.8',
+      version: '5.4.4',
       path: 'photoswipe/lightbox/lightbox.esm.js',
       type: 'js',
       priority: 'low',
     },
-    
-    // ==================== 可选：字体优化（如果需要）====================
-    /*
-    {
-      name: 'fontsource-roboto',
-      version: '5.0.8',
-      path: '@fontsource/roboto/400.css',
-      type: 'css',
-      priority: 'low',
-    },
-    */
   ],
   
   retryDelay: 1000,
@@ -130,6 +119,7 @@ const cdnConfig: CDNConfig = {
 };
 
 export default cdnConfig;
+export { cdnConfig }; // 同时提供命名导出，供组件使用
 
 /**
  * 获取资源在指定CDN上的完整URL
@@ -146,10 +136,8 @@ export function getCDNUrl(
   }
   
   if (provider === 'primary') {
-    // jsDelivr URL格式: https://cdn.jsdelivr.net/npm/package@version/path
     return `${config.baseUrl}/${resource.name}@${resource.version}/${resource.path}`;
   } else {
-    // BootCDN URL格式: https://cdn.bootcdn.net/ajax/libs/package/version/file
     const fileName = resource.path.split('/').pop() || '';
     return `${config.baseUrl}/${resource.name}/${resource.version}/${fileName}`;
   }
