@@ -4,7 +4,6 @@ import type {
 	NavBarConfig,
 	ProfileConfig,
 	SiteConfig,
-	FriendLinkConfig,
 } from "./types/config";
 import { LinkPreset } from "./types/config";
 
@@ -44,7 +43,6 @@ export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPreset.Home,
 		LinkPreset.Archive,
-		LinkPreset.Friends,
 		{
 			name: "GitHub",
 			url: "https://github.com/ozm519/fuwari", // Internal links should not include the base path, as it is automatically added
@@ -61,7 +59,7 @@ export const profileConfig: ProfileConfig = {
 	links: [
 		{
 			name: "Bilibili",
-			icon: "fa6-brands:bilibili", 
+			icon: "fa6-brands:bilibili",
 			url: "https://space.bilibili.com/3546673334716726?spm_id_from=333.1007.0.0",
 		},
 		{
@@ -82,9 +80,4 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	// Note: Some styles (such as background color) are being overridden, see the astro.config.mjs file.
 	// Please select a dark theme, as this blog theme currently only supports dark background color
 	theme: "github-dark",
-};
-
-export const friendLinkConfig: FriendLinkConfig = {
-	enable: true,
-	categories: [],
 };

@@ -16,10 +16,6 @@ export function getLinkPresets(): { [key in LinkPreset]: NavBarLink } {
 			name: i18n(I18nKey.archive),
 			url: "/archive/",
 		},
-		[LinkPreset.Friends]: {
-			name: i18n(I18nKey.friends),
-			url: "/friends/",
-		},
 	};
 }
 

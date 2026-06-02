@@ -48,7 +48,6 @@ export enum LinkPreset {
 	Home = 0,
 	Archive = 1,
 	About = 2,
-	Friends = 3,
 }
 
 export type NavBarLink = {
@@ -100,22 +99,4 @@ export type BlogPostData = {
 
 export type ExpressiveCodeConfig = {
 	theme: string;
-};
-
-export type FriendLink = {
-	name: string;
-	url: string;
-	description: string;
-	avatar?: string;
-	category?: string;
-};
-
-export type FriendLinkCategory = {
-	name: string;
-	links: FriendLink[];
-};
-
-export type FriendLinkConfig = {
-	enable: boolean;
-	categories: FriendLinkCategory[];
 };
