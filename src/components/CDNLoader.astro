@@ -1,21 +1,26 @@
 ---
 /**
- * CDNLoader.astro - CDN资源加载器组件 (完整版)
+ * CDNLoader.astro - CDN资源加载器组件
  * 
- * 功能：
- * - 全面接入CDN（jsDelivr + BootCDN）
+ * 加载策略：
+ * - 首选CDN：BootCDN (国内优先)
+ * - 备选CDN：jsDelivr (全球备选)
+ * - 自动切换：BootCDN失败 → 无缝切换至jsDelivr
+ * 
+ * 功能特性：
  * - 基于onerror事件的自动故障切换
+ * - 超时自动切换机制
  * - 支持JS/CSS等多种资源类型
  * - 无缝切换，用户无感知
  * - 完整的错误日志记录
  * - 按优先级分级加载
  */
 
-import { getCDNUrl, cdnConfig, getResourcesByPriority } from '../utils/cdn-config';
+import { getCDNUrl, cdnConfig, getResourcesByPriority, getCDNConfig } from '../utils/cdn-config';
 
 interface Props {
   enableCDN?: boolean;
-  useCDNForAll?: boolean; // 是否全面使用CDN
+  useCDNForAll?: boolean;
 }
 
 const { enableCDN = true, useCDNForAll = true } = Astro.props;
@@ -23,18 +28,14 @@ const { enableCDN = true, useCDNForAll = true } = Astro.props;
 // 获取按优先级分组的资源
 const { critical, high, low } = getResourcesByPriority();
 
-// 合并需要加载的资源
-const allResources = [...critical, ...high, ...low];
-
-// 去重处理（同一package可能有多个文件）
-const uniqueResources = allResources.filter((resource, index, self) =>
-  index === self.findIndex(r => r.name === resource.name && r.path === resource.path)
-);
+// 获取配置信息用于客户端脚本
+const configInfo = getCDNConfig();
 ---
 
 {enableCDN && (
   <>
     <!-- ==================== Critical Priority Resources (同步加载) ==================== -->
+    <!-- 优先从 BootCDN 加载，失败自动切换到 jsDelivr -->
     {critical.map(resource => (
       resource.type === 'css' ? (
         <link
@@ -47,7 +48,6 @@ const uniqueResources = allResources.filter((resource, index, self) =>
           data-cdn-primary={getCDNUrl(resource, 'primary')}
           data-cdn-backup={getCDNUrl(resource, 'backup')}
           crossorigin="anonymous"
-          onerror={(event) => handleCDNError(event, 'css')}
         />
       ) : null
     ))}
@@ -63,7 +63,6 @@ const uniqueResources = allResources.filter((resource, index, self) =>
         data-cdn-backup={getCDNUrl(resource, 'backup')}
         data-cdn-global-var={resource.globalVar || ''}
         crossorigin="anonymous"
-        onerror={(event) => handleCDNError(event, 'js')}
       />
     ))}
     
@@ -81,7 +80,6 @@ const uniqueResources = allResources.filter((resource, index, self) =>
           data-cdn-backup={getCDNUrl(resource, 'backup')}
           media="print" onload="this.media='all'"
           crossorigin="anonymous"
-          onerror={(event) => handleCDNError(event, 'css')}
         />
       ) : null
     ))}
@@ -97,7 +95,6 @@ const uniqueResources = allResources.filter((resource, index, self) =>
         data-cdn-backup={getCDNUrl(resource, 'backup')}
         defer
         crossorigin="anonymous"
-        onerror={(event) => handleCDNError(event, 'js')}
       />
     ))}
     
@@ -116,7 +113,6 @@ const uniqueResources = allResources.filter((resource, index, self) =>
           data-cdn-backup={getCDNUrl(resource, 'backup')}
           onload="this.onload=null;this.rel='stylesheet'"
           crossorigin="anonymous"
-          onerror={(event) => handleCDNError(event, 'css')}
         />
       ) : null
     ))}
@@ -127,28 +123,43 @@ const uniqueResources = allResources.filter((resource, index, self) =>
 <script define:vars={{ 
   enableCDN: enableCDN,
   useCDNForAll: useCDNForAll,
-  cdnConfig: JSON.stringify({
-    primaryName: cdnConfig.providers.primary.name,
-    backupName: cdnConfig.providers.backup.name,
-    enableLogging: cdnConfig.enableLogging,
-  })
+  configInfo: JSON.stringify(configInfo),
 }}>
   /**
-   * CDN全局错误处理器
+   * CDN资源管理器 - 核心逻辑
+   * 
+   * 工作流程：
+   * 1. 页面加载时从 BootCDN (primary) 获取资源
+   * 2. 若 BootCDN 加载失败或超时 → 自动切换到 jsDelivr (backup)
+   * 3. 若 jsDeliv 也失败 → 记录错误并尝试本地回退
    */
   
-  // 错误日志收集器
+  // ==================== 全局状态初始化 ====================
+  
   window.__CDN_ERROR_LOGS__ = [];
   window.__CDN_STATS__ = {
     totalResources: 0,
-    loadedFromPrimary: 0,
-    loadedFromBackup: 0,
+    loadedFromPrimary: 0,   // 从 BootCDN 加载成功数
+    loadedFromBackup: 0,    // 从 jsDelivr 加载成功数
     failedResources: [],
+    switchedResources: [],   // 发生过切换的资源
     startTime: Date.now(),
   };
   
+  const CONFIG = JSON.parse(configInfo);
+  const TIMEOUT_MS = CONFIG.timeout || 8000; // 默认8秒超时
+  
+  console.log(`[CDN] 初始化完成`);
+  console.log(`[CDN] 首选CDN: ${CONFIG.primaryName} (${CONFIG.primaryBase})`);
+  console.log(`[CDN] 备选CDN: ${CONFIG.backupName} (${CONFIG.backupBase})`);
+  console.log(`[CDN] 超时设置: ${TIMEOUT_MS}ms`);
+  
+  // ==================== 核心函数 ====================
+  
   /**
    * 处理CDN资源加载错误
+   * @param {Event} event - 错误事件对象
+   * @param {string} type - 资源类型 ('js' | 'css')
    */
   function handleCDNError(event, type) {
     const element = event.target;
@@ -164,158 +175,244 @@ const uniqueResources = allResources.filter((resource, index, self) =>
     if (element.getAttribute('data-cdn-switched')) return;
     element.setAttribute('data-cdn-switched', 'true');
     
+    // 判断失败的CDN是哪个
+    const failedProvider = failedUrl.includes('bootcdn.net') ? 'BootCDN' : 'jsDelivr';
+    
     // 记录错误日志
     const errorLog = {
       timestamp: new Date().toISOString(),
       resource: resourceName,
       path: resourcePath,
       failedUrl: failedUrl,
+      failedProvider: failedProvider,
       backupUrl: backupUrl,
       type: type,
       priority: priority,
-      provider: 'jsDelivr',
       userAgent: navigator.userAgent,
     };
     
     window.__CDN_ERROR_LOGS__.push(errorLog);
     window.__CDN_STATS__.failedResources.push(resourceName);
     
-    console.error(`[CDN Error] Failed to load ${resourceName} (${type}) from jsDelivr`);
-    console.error('[CDN] Switching to BootCDN...');
+    console.warn(`[CDN Error] ${resourceName} (${type}) 加载失败`);
+    console.warn(`[CDN] 失败来源: ${failedProvider}`);
+    console.warn(`[CDN] 失败URL: ${failedUrl}`);
     
-    // 切换到备用CDN
+    // 执行切换
     if (backupUrl && !element.hasAttribute('data-cdn-retried')) {
-      switchToBackupCDN(element, backupUrl, resourceName, type);
+      switchToBackup(element, backupUrl, resourceName, type, failedProvider);
     }
   }
   
   /**
-   * 切换到备用CDN重新加载
+   * 切换到备用CDN重新加载资源
+   * @param {HTMLElement} failedElement - 失败的DOM元素
+   * @param {string} backupUrl - 备用CDN的URL
+   * @param {string} resourceName - 资源名称
+   * @param {string} type - 资源类型
+   * @param {string} fromProvider - 失败的CDN提供商名称
    */
-  function switchToBackupCDN(failedElement, backupUrl, resourceName, type) {
-    console.log(`[CDN Switch] Loading ${resourceName} from BootCDN: ${backupUrl}`);
+  function switchToBackup(failedElement, backupUrl, resourceName, type, fromProvider) {
+    const toProvider = backupUrl.includes('bootcdn.net') ? 'BootCDN' : 'jsDelivr';
+    
+    console.log(`[CDN Switch] ${resourceName}: ${fromProvider} → ${toProvider}`);
+    console.log(`[CDN Switch] 新URL: ${backupUrl}`);
+    
+    // 记录切换事件
+    window.__CDN_STATS__.switchedResources.push({
+      resource: resourceName,
+      from: fromProvider,
+      to: toProvider,
+      timestamp: Date.now(),
+    });
     
     // 移除失败的元素
     if (failedElement.parentNode) {
       failedElement.parentNode.removeChild(failedElement);
     }
     
-    // 创建新元素
+    // 创建新元素加载备用CDN资源
     let newElement;
     if (type === 'js') {
-      newElement = document.createElement('script');
-      newElement.src = backupUrl;
-      newElement.async = false; // 保持执行顺序
-      
-      newElement.onload = function() {
-        console.log(`[CDN Success] ${resourceName} loaded from BootCDN`);
-        window.__CDN_STATS__.loadedFromBackup++;
-        
-        // 检测全局变量是否可用
-        const globalVar = failedElement.getAttribute('data-cdn-global-var');
-        if (globalVar && typeof window[globalVar] !== 'undefined') {
-          console.log(`[CDN] Global variable '${globalVar}' is available`);
-        }
-      };
-      
-      newElement.onerror = function() {
-        console.error(`[CDN Critical] Both CDNs failed for ${resourceName}`);
-        
-        // 记录最终失败
-        window.__CDN_ERROR_LOGS__.push({
-          timestamp: new Date().toISOString(),
-          resource: resourceName,
-          error: 'Both primary and backup CDNs failed',
-          url: backupUrl,
-          type: 'critical',
-        });
-        
-        // 尝试回退到本地资源（如果有的话）
-        fallbackToLocal(resourceName, type);
-      };
-      
+      newElement = createScriptElement(backupUrl, resourceName, toProvider);
     } else if (type === 'css') {
-      newElement = document.createElement('link');
-      newElement.rel = 'stylesheet';
-      newElement.href = backupUrl;
-      newElement.type = 'text/css';
-      
-      newElement.onload = function() {
-        console.log(`[CDN Success] ${resourceName} CSS loaded from BootCDN`);
-        window.__CDN_STATS__.loadedFromBackup++;
-      };
-      
-      newElement.onerror = function() {
-        console.error(`[CDN Critical] Both CDNs failed for ${resourceName} CSS`);
-        fallbackToLocal(resourceName, type);
-      };
+      newElement = createCSSElement(backupUrl, resourceName, toProvider);
     }
     
     if (newElement) {
-      newElement.setAttribute('data-cdn-resource', resourceName);
-      newElement.setAttribute('data-cdn-provider', 'bootcdn');
-      newElement.setAttribute('data-cdn-retried', 'true');
       document.head.appendChild(newElement);
     }
   }
   
   /**
-   * 回退到本地资源（最后手段）
+   * 创建Script元素用于加载JS资源
    */
-  function fallbackToLocal(resourceName, type) {
-    console.warn(`[CDN Fallback] Attempting local fallback for ${resourceName}`);
+  function createScriptElement(url, resourceName, provider) {
+    const script = document.createElement('script');
+    script.src = url;
+    script.async = false; // 保持执行顺序
+    script.setAttribute('data-cdn-resource', resourceName);
+    script.setAttribute('data-cdn-provider', provider.toLowerCase());
+    script.setAttribute('data-cdn-retried', 'true');
     
-    // 这里可以添加本地资源的回退逻辑
-    // 例如：从 /assets/vendor/ 目录加载
+    // 设置超时检测
+    const timeoutId = setTimeout(() => {
+      handleTimeout(script, resourceName, provider, url);
+    }, TIMEOUT_MS);
     
-    /*
-    const localPath = `/assets/vendor/${resourceName}`;
-    if (type === 'js') {
-      const script = document.createElement('script');
-      script.src = localPath + '.js';
-      document.head.appendChild(script);
-    } else if (type === 'css') {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = localPath + '.css';
-      document.head.appendChild(link);
-    }
-    */
+    script.onload = function() {
+      clearTimeout(timeoutId);
+      
+      if (provider === 'BootCDN') {
+        window.__CDN_STATS__.loadedFromPrimary++;
+      } else {
+        window.__CDN_STATS__.loadedFromBackup++;
+      }
+      
+      console.log(`[CDN Success] ${resourceName} 从 ${provider} 加载成功 ✓`);
+      
+      // 检测全局变量是否可用
+      const globalVar = document.querySelector(`[data-cdn-retried][data-cdn-global-var]`)?.getAttribute('data-cdn-global-var');
+      if (globalVar && typeof window[globalVar] !== 'undefined') {
+        console.log(`[CDN] 全局变量 '${globalVar}' 可用`);
+      }
+    };
+    
+    script.onerror = function() {
+      clearTimeout(timeoutId);
+      handleFinalFailure(resourceName, 'js', provider, url);
+    };
+    
+    return script;
   }
   
   /**
-   * 全局错误监听器（捕获未处理的CDN错误）
+   * 创建Link元素用于加载CSS资源
+   */
+  function createCSSElement(url, resourceName, provider) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    link.type = 'text/css';
+    link.setAttribute('data-cdn-resource', resourceName);
+    link.setAttribute('data-cdn-provider', provider.toLowerCase());
+    link.setAttribute('data-cdn-retried', 'true');
+    
+    // CSS无法通过onerror可靠检测，使用超时作为补充
+    const timeoutId = setTimeout(() => {
+      // CSS超时不一定意味着失败，仅做警告
+      console.warn(`[CDN Warning] ${resourceName} CSS 加载可能超时 (${TIMEOUT_MS}ms)`);
+    }, TIMEOUT_MS);
+    
+    link.onload = function() {
+      clearTimeout(timeoutId);
+      
+      if (provider === 'BootCDN') {
+        window.__CDN_STATS__.loadedFromPrimary++;
+      } else {
+        window.__CDN_STATS__.loadedFromBackup++;
+      }
+      
+      console.log(`[CDN Success] ${resourceName} CSS 从 ${provider} 加载成功 ✓`);
+    };
+    
+    link.onerror = function() {
+      clearTimeout(timeoutId);
+      handleFinalFailure(resourceName, 'css', provider, url);
+    };
+    
+    return link;
+  }
+  
+  /**
+   * 处理超时情况
+   */
+  function handleTimeout(element, resourceName, provider, url) {
+    console.warn(`[CDN Timeout] ${resourceName} 从 ${provider} 加载超时 (>${TIMEOUT_MS}ms)`);
+    
+    // 如果是从BootCDN超时，尝试切换到jsDelivr
+    if (provider === 'BootCDN') {
+      const backupUrl = element.getAttribute('data-cdn-backup-original') || 
+                        element.closest('[data-cdn-backup]')?.getAttribute('data-cdn-backup');
+      
+      if (backupUrl && !element.hasAttribute('data-cdn-timeout-switched')) {
+        element.setAttribute('data-cdn-timeout-switched', 'true');
+        console.log(`[CDN Timeout Switch] 尝试从 jsDelivr 加载 ${resourceName}`);
+        
+        if (element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+        
+        const type = element.tagName === 'SCRIPT' ? 'js' : 'css';
+        if (type === 'js') {
+          document.head.appendChild(createScriptElement(backupUrl, resourceName, 'jsDelivr'));
+        } else {
+          document.head.appendChild(createCSSElement(backupUrl, resourceName, 'jsDelivr'));
+        }
+      }
+    }
+  }
+  
+  /**
+   * 处理最终失败（两个CDN都失败）
+   */
+  function handleFinalFailure(resourceName, type, lastProvider, url) {
+    console.error(`[CDN Critical] ${resourceName} 从 ${lastProvider} 也失败了！`);
+    console.error(`[CDN Critical] 所有CDN均不可用`);
+    
+    // 记录最终失败
+    window.__CDN_ERROR_LOGS__.push({
+      timestamp: new Date().toISOString(),
+      resource: resourceName,
+      error: `Both BootCDN and jsDelivr failed`,
+      url: url,
+      type: type,
+      severity: 'critical',
+    });
+    
+    // 可以在这里添加本地资源回退逻辑
+    // fallbackToLocal(resourceName, type);
+  }
+  
+  // ==================== 全局事件监听 ====================
+  
+  /**
+   * 全局错误监听器 - 捕获所有CDN资源的加载错误
    */
   document.addEventListener('error', function(event) {
     const target = event.target;
     const tagName = target.tagName;
     
-    if ((tagName === 'SCRIPT' || tagName === 'LINK') && 
-        target.hasAttribute('data-cdn-resource')) {
-      
+    // 只处理带有CDN标记的资源
+    if ((tagName === 'SCRIPT' || tagName === 'LINK') && target.hasAttribute('data-cdn-resource')) {
       const url = target.src || target.href;
       
       // 只处理CDN URL的错误
-      if (url && (url.includes('cdn.jsdelivr.net') || url.includes('cdn.bootcdn.net'))) {
+      if (url && (url.includes('cdn.bootcdn.net') || url.includes('cdn.jsdelivr.net'))) {
         event.preventDefault();
         event.stopPropagation();
         
-        handleCDNError({
-          target: target
-        }, tagName.toLowerCase());
+        handleCDNError({ target: target }, tagName.toLowerCase());
       }
     }
-  }, true); // 使用捕获阶段
+  }, true); // 使用捕获阶段确保优先处理
+  
+  // ==================== 公共API ====================
   
   /**
-   * 提供全局API查询CDN状态
+   * 获取CDN状态报告
    */
   window.getCDNStatus = function() {
     return {
       enabled: enableCDN,
+      strategy: {
+        primary: CONFIG.primaryName,
+        backup: CONFIG.backupName,
+        timeout: TIMEOUT_MS,
+      },
       stats: window.__CDN_STATS__,
       errors: window.__CDN_ERROR_LOGS__,
-      config: JSON.parse(cdnConfig),
+      config: CONFIG,
     };
   };
   
@@ -323,29 +420,42 @@ const uniqueResources = allResources.filter((resource, index, self) =>
    * 手动触发CDN健康检查
    */
   window.checkCDNHealth = async function() {
+    const results = {};
+    
     try {
-      const response = await fetch(cdnConfig.primaryName === 'jsDelivr' ? 
-        'https://cdn.jsdelivr.net/health' : 
-        'https://cdn.bootcdn.net/health'
-      );
-      
-      return {
-        healthy: response.ok,
-        status: response.status,
-        timestamp: new Date().toISOString(),
-      };
-    } catch (error) {
-      return {
-        healthy: false,
-        error: error.message,
-        timestamp: new Date().toISOString(),
-      };
+      // 检查BootCDN
+      const bootcdnResp = await fetch('https://cdn.bootcdn.net/ajax/libs/vue/3.4.21/vue.global.min.js', {
+        method: 'HEAD',
+        mode: 'no-cors',
+        signal: AbortSignal.timeout(5000),
+      });
+      results.bootcdn = { healthy: true, latency: Date.now() };
+    } catch (e) {
+      results.bootcdn = { healthy: false, error: e.message };
     }
+    
+    try {
+      // 检查jsDelivr
+      const jsdelivrResp = await fetch('https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.min.js', {
+        method: 'HEAD',
+        mode: 'no-cors',
+        signal: AbortSignal.timeout(5000),
+      });
+      results.jsdelivr = { healthy: true, latency: Date.now() };
+    } catch (e) {
+      results.jsdelivr = { healthy: false, error: e.message };
+    }
+    
+    return {
+      timestamp: new Date().toISOString(),
+      ...results,
+    };
   };
   
-  // 初始化统计
+  // ==================== 初始化统计 ====================
+  
   window.__CDN_STATS__.totalResources = document.querySelectorAll('[data-cdn-resource]').length;
   
-  console.log(`[CDN Initialized] Ready to load ${window.__CDN_STATS__.totalResources} resources`);
-  console.log('[CDN] Primary: jsDelivr | Backup: BootCDN');
+  console.log(`[CDN Ready] 共 ${window.__CDN_STATS__.totalResources} 个资源待加载`);
+  console.log(`[CDN Strategy] BootCDN(首选) → jsDelivr(备选)`);
 </script>
