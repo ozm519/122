@@ -103,8 +103,15 @@ const bannerOffset =
 
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		
-		<!-- CDN Loader - 主备切换机制 (jsDelivr + BootCDN) -->
+
+		<!-- 第三方域预连接：减少 DNS+TLS 握手延迟 -->
+		<link rel="preconnect" href="https://api.iconify.design" crossorigin />
+		<link rel="dns-prefetch" href="https://api.iconify.design" />
+		<!-- 如使用阿里云OSS作为图片源，请将 bucket 域名加到这里（不带签名） -->
+		<!-- <link rel="preconnect" href="https://your-bucket.oss-cn-hangzhou.aliyuncs.com" crossorigin /> -->
+		<!-- <link rel="dns-prefetch" href="https://your-bucket.oss-cn-hangzhou.aliyuncs.com" /> -->
+
+		<!-- 本地 vendor 资源加载器（katex / overlayscrollbars / photoswipe） -->
 		<CDNLoader enableCDN={true} useCDNForAll={true} />
 		
 		{favicons.map(favicon => (

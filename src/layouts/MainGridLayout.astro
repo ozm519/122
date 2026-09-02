@@ -4,7 +4,7 @@ import Footer from "@components/Footer.astro";
 import Navbar from "@components/Navbar.astro";
 import SideBar from "@components/widget/SideBar.astro";
 import type { MarkdownHeading } from "astro";
-import { Icon } from "astro-icon/components";
+import { Icon } from "../components/Icon.astro";
 import ImageWrapper from "../components/misc/ImageWrapper.astro";
 import TOC from "../components/widget/TOC.astro";
 import { siteConfig } from "../config";
@@ -87,15 +87,12 @@ const mainPanelTop = siteConfig.banner.enable
                     <!-- the overflow-hidden here prevent long text break the layout-->
                     <!-- make id different from windows.swup global property -->
                     <slot></slot>
-                    <div class="footer col-span-2 onload-animation hidden lg:block">
-                        <Footer></Footer>
-                    </div>
+                </div>
+                <!-- Footer 单次渲染：移出 content-wrapper，避免和下方移动端 footer 重复 -->
+                <div class="footer col-span-2 onload-animation">
+                    <Footer></Footer>
                 </div>
             </main>
-
-            <div class="footer col-span-2 onload-animation block lg:hidden">
-                <Footer></Footer>
-            </div>
         </div>
 
         <BackToTop></BackToTop>

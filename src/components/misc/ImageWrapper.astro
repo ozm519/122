@@ -54,7 +54,7 @@ console.error(
 img = await file();
 }
 
-// ¼ì²âÍâ²¿ÊÇ·ñÖ¸¶¨ÁËobject-fit£¬Èç¹ûÃ»ÓĞÔòÊ¹ÓÃÄ¬ÈÏÖµ
+// æ£€æµ‹å¤–éƒ¨æ˜¯å¦æŒ‡å®šäº†object-fitï¼Œå¦‚æœæ²¡æœ‰åˆ™ä½¿ç”¨é»˜è®¤å€¼
 const hasCustomFit = className && (className.includes('object-cover') || className.includes('object-contain') || className.includes('object-fill') || className.includes('object-none'));
 const finalFit = hasCustomFit ? '' : `object-${fit}`;
 const imageClass = `w-full ${finalFit}`.trim();
@@ -62,6 +62,6 @@ const imageStyle = `object-position: ${position}`;
 ---
 <div id={id} class:list={[className, 'overflow-hidden relative']}>
     <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div>
-    {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle} loading={lazy ? "lazy" : "eager"} />}
+    {isLocal && img && <Image src={img} alt={alt || ""} class={imageClass} style={imageStyle} loading={lazy ? "lazy" : "eager"} format="webp" quality={75} />}
     {!isLocal && <img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass} style={imageStyle} loading={lazy ? "lazy" : "eager"} />}
 </div>

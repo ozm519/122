@@ -1,0 +1,82 @@
+---
+// Icon.astro - 按需加载 Iconify 图标的轻量组件
+//
+// 取代 astro-icon 依赖：
+// - 不再依赖 @iconify/svelte / @iconify-json-* / astro-icon
+// - 直接调用 Iconify API（https://api.iconify.design/{prefix}/{icon}.svg?inline）
+//   在构建时 fetch SVG，inline 渲染，避免运行时阻塞和 FOUT
+//
+// 用法：
+//   <Icon name="material-symbols:home-outline-rounded" class="text-[1.5rem]" />
+//   <Icon name="fa6-solid:user" class="text-5xl" />
+//
+// 移除 astro-icon 依赖后，本组件接管所有图标渲染。
+//
+// 注意：构建时需要网络访问 https://api.iconify.design ；
+// 如离线构建，请把 SVG 缓存到 public/vendor/icons/{prefix}/{icon}.svg。
+
+interface Props {
+	/** 图标名，格式：prefix:icon-name，如 material-symbols:home-outline-rounded */
+	name: string;
+	class?: string;
+	/** SVG 额外属性 */
+	"aria-hidden"?: boolean | string;
+	role?: string;
+	width?: string | number;
+	height?: string | number;
+}
+
+const { name, class: className, "aria-hidden": ariaHidden = true, role = "img", width, height } = Astro.props;
+
+// 默认 base URL
+const ICONIFY_BASE = "https://api.iconify.design";
+
+// 解析 prefix:icon
+const colonIdx = name.indexOf(":");
+if (colonIdx <= 0) {
+	throw new Error(`[Icon] 无效的图标名: ${name}，需为 "prefix:icon" 格式`);
+}
+const prefix = name.slice(0, colonIdx);
+const icon = name.slice(colonIdx + 1);
+
+const url = `${ICONIFY_BASE}/${prefix}/${icon}.svg?inline=1&svgProps=vertical-align%3A%20middle`;
+
+// 构建时 fetch SVG（@astrojs/cloudflare 也支持 server build 时的 fetch）
+let svg = "";
+try {
+	const resp = await fetch(url);
+	if (resp.ok) {
+		svg = await resp.text();
+	} else {
+		console.warn(`[Icon] fetch 失败 (${resp.status}): ${url}`);
+	}
+} catch (e) {
+	console.warn(`[Icon] fetch 异常: ${url}`, e);
+}
+
+// 提取 <svg ...>...</svg> 内容
+const match = svg.match(/<svg[\s\S]*?<\/svg>/i);
+let inner = match ? match[0] : "";
+
+// 给 svg 标签补上 class（如果还没有）
+if (inner && className) {
+	if (/\bclass\s*=\s*"/.test(inner)) {
+		inner = inner.replace(/<svg([^>]*?)\bclass\s*=\s*"([^"]*)"/i, (m, pre, c) => `<svg${pre}class="${c} ${className}"`);
+	} else {
+		inner = inner.replace(/<svg/i, `<svg class="${className}"`);
+	}
+}
+
+// 注入宽高属性（如果指定）
+if (inner && (width || height)) {
+	const sizeAttrs = `${width ? ` width="${width}"` : ""}${height ? ` height="${height}"` : ""}`;
+	inner = inner.replace(/<svg/i, `<svg${sizeAttrs}`);
+}
+
+// 注入 aria 和 role
+if (inner) {
+	inner = inner.replace(/<svg/i, `<svg aria-hidden="${ariaHidden}" role="${role}"`);
+}
+---
+
+<Fragment set:html={inner} />

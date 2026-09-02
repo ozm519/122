@@ -6,7 +6,6 @@ import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers";
 import swup from "@swup/astro";
 import { defineConfig } from "astro/config";
 import expressiveCode from "astro-expressive-code";
-import icon from "astro-icon";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeComponents from "rehype-components";/* Render the custom directive content */
 import rehypeKatex from "rehype-katex";
@@ -49,19 +48,6 @@ export default defineConfig({
 			updateHead: true,
 			updateBodyClass: false,
 			globalInstance: true,
-		}),
-		icon({
-			include: {
-				"fa6-brands": ["*"],
-				"fa6-regular": ["*"],
-				"fa6-solid": ["*"],
-			},
-			loadIcon: (name) => {
-				const [prefix, icon] = name.split(":");
-				return fetch(`https://api.iconify.design/${prefix}/${icon}.svg?inline`)
-					.then((r) => r.text())
-					.catch(() => null);
-			},
 		}),
 		expressiveCode({
 			themes: [expressiveCodeConfig.theme, expressiveCodeConfig.theme],
@@ -181,5 +167,16 @@ export default defineConfig({
 		},
 	},
 
-    adapter: cloudflare()
+    adapter: cloudflare(),
+
+    // 安全响应头：双重保险（在 src/middleware.ts 中也会移除/添加）
+    server: {
+        headers: {
+            "X-Frame-Options": "SAMEORIGIN",
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+            // 通过空字符串清空 X-Powered-By
+            "X-Powered-By": "",
+        },
+    },
 });

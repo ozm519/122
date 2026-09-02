@@ -92,6 +92,61 @@ All commands are run from the root of the project, from a terminal:
 
 Check out the [Contributing Guide](https://github.com/saicaca/fuwari/blob/main/CONTRIBUTING.md) for details on how to contribute to this project.
 
+## 🔒 安全与性能修复记录
+
+> 本仓库已应用以下安全与性能修复，请按需调整。
+
+### 安全响应头
+
+通过 `src/middleware.ts` 自动注入：
+
+| 响应头 | 值 | 作用 |
+|:--|:--|:--|
+| `X-Frame-Options` | `SAMEORIGIN` | 防点击劫持 |
+| `X-Content-Type-Options` | `nosniff` | 防 MIME 嗅探 |
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | 强制 HTTPS |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | 控制 Referer 泄露 |
+| `Content-Security-Policy` | 默认 `'self'`，HTML 响应生效 | 防 XSS |
+| `Permissions-Policy` | 禁用 camera/mic/geo | 最小权限 |
+| `X-Powered-By` | 已移除 | 不再泄露 Astro 版本 |
+
+CORS 默认仅同源，如需对外提供 API，把来源加到 `src/middleware.ts` 的 `CORS_ALLOW_ORIGINS`。
+
+### 缓存策略
+
+`src/middleware.ts` 自动为不同资源设置 `Cache-Control`：
+
+- `/_astro/*`（带 hash 的构建产物）→ `public, max-age=31536000, immutable`（1 年）
+- `/vendor/*`、`/favicon/*`、`/pagefind/*`、图片/字体 → `public, max-age=86400`（1 天）
+- HTML 页面 → `public, max-age=0, must-revalidate`
+
+这样 Cloudflare 边缘缓存才会真正命中。
+
+### 本地 vendor 资源
+
+`katex`、`overlayscrollbars`、`photoswipe` 不再从 BootCDN/jsDelivr 远程加载，全部使用 `/public/vendor/` 下的本地文件，消除外网 404 风险。
+
+如果升级依赖后需要刷新 vendor 文件：
+
+```sh
+pnpm run sync-vendor   # 同步 node_modules 中的最新版本到 public/vendor/
+```
+
+### 关于阿里云 OSS 图片链接
+
+**强烈建议：使用 Bucket 公共读 + 不带签名的 URL**，而不是带 `Expires=...&Signature=...` 的签名 URL。
+
+- 签名 URL 7 天后会过期，所有图片变白图（`AccessDenied`）
+- 公共读 URL 形如 `https://your-bucket.oss-cn-hangzhou.aliyuncs.com/...`，永不过期
+
+如果你的 Bucket **必须**保持私有，只能在签名 URL 快过期时重新部署（不推荐）。
+
+修改后请把 bucket 域名加到 `src/layouts/Layout.astro` 的 `preconnect`，进一步减少首屏延迟。
+
+### 重复 Footer 修复
+
+`src/layouts/MainGridLayout.astro` 中已合并桌面/移动两份 `<Footer />`，DOM 中只渲染一次。
+
 ## 📄 License
 
 This project is licensed under the MIT License.
